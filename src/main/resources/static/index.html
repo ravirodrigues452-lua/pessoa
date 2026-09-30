@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Controle de Estoque | Gestão de Produtos</title>
+  <meta name="description" content="Sistema completo para gestão de estoque com código de modelo único por produto, controle de movimentações e alertas em tempo real.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0f1d;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #6366f1;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.2);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.2);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Container Principal */
+    .app-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .brand-icon svg {
+      width: 26px;
+      height: 26px;
+      fill: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* Stats Grid */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .stat-info p {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-info h3 {
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+
+    .stat-icon-wrapper {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-blue .stat-icon-wrapper { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+    .stat-green .stat-icon-wrapper { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .stat-amber .stat-icon-wrapper { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+    /* Layout Principal: Formulário + Lista */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Genérico */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Formulário */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    input, select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem 0.75rem 2.75rem;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+      background: rgba(15, 23, 42, 1);
+    }
+
+    /* Destaque especial para o Código de Modelo */
+    .highlight-field input {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .highlight-field input:focus {
+      border-color: #818cf8;
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .field-hint {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Botões */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      text-decoration: none;
+      font-family: var(--font-sans);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.65rem;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    /* Barra de Ações da Tabela */
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .filters-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 0.875rem;
+      border-radius: 20px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Tabela */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 0.875rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.875rem;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Badge do Código de Modelo */
+    .badge-modelo {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-category {
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+    }
+
+    .status-pill {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-ok { background: var(--success); box-shadow: 0 0 8px var(--success-glow); }
+    .status-low { background: var(--warning); box-shadow: 0 0 8px var(--warning-glow); }
+    .status-empty { background: var(--danger); box-shadow: 0 0 8px var(--danger-glow); }
+
+    /* Ações de Linha */
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Modal de Movimentação */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Toasts */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .toast {
+      background: #1e293b;
+      border-left: 4px solid var(--primary);
+      color: #fff;
+      padding: 0.875rem 1.25rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      min-width: 280px;
+      animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toast-success { border-color: var(--success); }
+    .toast-error { border-color: var(--danger); }
+    .toast-warning { border-color: var(--warning); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--text-muted);
+      margin-bottom: 1rem;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast-container"></div>
+
+  <div class="app-container">
+    
+    <!-- Topo / Identidade -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Controle de Estoque & Produtos</h1>
+          <p>Gestão com Código de Modelo Único por Produto</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-secondary btn-sm" onclick="carregarProdutos()" id="btn-atualizar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          Sincronizar
+        </button>
+      </div>
+    </header>
+
+    <!-- Indicadores / Cards de Status -->
+    <section class="stats-container">
+      <div class="stat-card stat-blue">
+        <div class="stat-info">
+          <p>Total de Modelos</p>
+          <h3 id="stat-total-produtos">0</h3>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card stat-green">
+        <div class="stat-info">
+          <p>Itens em Estoque</p>
+          <h3 id="stat-total-itens">0</h3>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card stat-amber">
+        <div class="stat-info">
+          <p>Estoque Baixo (≤ 5)</p>
+          <h3 id="stat-estoque-critico">0</h3>
+        </div>
+        <div class="stat-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid: Formulário de Cadastro + Lista de Produtos -->
+    <div class="main-grid">
+      
+      <!-- Formulário de Cadastro / Edição -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title" id="form-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Adicionar Novo Produto
+          </h2>
+          <span id="badge-modo" class="badge" style="display:none; background: rgba(99, 102, 241, 0.2); color: #818cf8;">Editando</span>
+        </div>
+
+        <form id="produto-form" onsubmit="salvarProduto(event)">
+          <!-- Hidden ID para edição -->
+          <input type="hidden" id="prod-id">
+
+          <!-- Campo NOVO: Código de Modelo (ÚNICO) -->
+          <div class="form-group highlight-field">
+            <label for="prod-codigo-modelo">Código de Modelo (Identificador Único) *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </span>
+              <input 
+                type="text" 
+                id="prod-codigo-modelo" 
+                placeholder="Ex: MOD-1042, SKU-A99..." 
+                required 
+                autocomplete="off"
+                oninput="this.value = this.value.toUpperCase()"
+              >
+            </div>
+            <small class="field-hint">Código único no banco de dados para identificar este modelo.</small>
+          </div>
+
+          <!-- Nome do Produto -->
+          <div class="form-group">
+            <label for="prod-nome">Nome do Produto *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+              </span>
+              <input type="text" id="prod-nome" placeholder="Ex: Tênis Esportivo Runner" required>
+            </div>
+          </div>
+
+          <!-- Categoria -->
+          <div class="form-group">
+            <label for="prod-categoria">Categoria</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </span>
+              <input type="text" id="prod-categoria" placeholder="Ex: Calçados, Eletrônicos, Roupas">
+            </div>
+          </div>
+
+          <!-- Linha com Quantidade e Preço -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prod-quantidade">Qtd em Estoque</label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                  </svg>
+                </span>
+                <input type="number" id="prod-quantidade" min="0" value="0" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="prod-preco">Preço Unitário (R$)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <span style="font-weight:700; font-size: 0.85rem;">R$</span>
+                </span>
+                <input type="number" id="prod-preco" step="0.01" min="0" placeholder="0,00" value="0.00" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botões do Formulário -->
+          <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary btn-full" id="btn-salvar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Salvar Produto
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetarFormulario()" id="btn-cancelar" title="Limpar formulário">
+              Limpar
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista / Tabela de Produtos -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            Estoque de Produtos
+          </h2>
+          <span class="badge" style="background: rgba(255,255,255,0.06);" id="lbl-total-grid">0 produtos</span>
+        </div>
+
+        <!-- Ações: Busca e Filtros -->
+        <div class="table-actions">
+          <div class="search-box">
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </span>
+              <input type="text" id="campo-busca" placeholder="Filtrar por Código de Modelo, Nome ou Categoria..." oninput="filtrarProdutos()">
+            </div>
+          </div>
+
+          <div class="filters-group">
+            <button class="filter-btn active" id="filter-todos" onclick="definirFiltro('todos')">Todos</button>
+            <button class="filter-btn" id="filter-disponivel" onclick="definirFiltro('disponivel')">Disponíveis</button>
+            <button class="filter-btn" id="filter-baixo" onclick="definirFiltro('baixo')">Estoque Baixo</button>
+          </div>
+        </div>
+
+        <!-- Tabela Responsiva -->
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Código de Modelo</th>
+                <th>Nome / Descrição</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th style="text-align: right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-produtos-corpo">
+              <!-- Conteúdo gerado dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          <p>Nenhum produto cadastrado ou correspondente ao filtro.</p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Modal para Movimentação de Estoque (Entrada / Saída) -->
+  <div class="modal-overlay" id="modal-movimentacao">
+    <div class="modal-content">
+      <div class="card-header">
+        <h3 class="card-title" id="modal-titulo">Movimentação de Estoque</h3>
+        <button class="btn btn-secondary btn-sm" onclick="fecharModal()">✕</button>
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Produto:</p>
+        <p id="modal-produto-nome" style="font-weight: 700; font-size: 1.1rem; color: #fff;"></p>
+        <span id="modal-produto-modelo" class="badge badge-modelo" style="margin-top: 0.25rem;"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="modal-qtd">Quantidade de Itens:</label>
+        <div class="input-wrapper">
+          <input type="number" id="modal-qtd" min="1" value="1">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-primary btn-full" id="modal-btn-confirmar" onclick="executarMovimentacao()">
+          Confirmar
+        </button>
+        <button class="btn btn-secondary" onclick="fecharModal()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL base da API (como é servido pelo Spring Boot, usamos caminho relativo)
+    const API_URL = '';
+
+    let produtos = [];
+    let filtroAtual = 'todos';
+    let produtoMovimentacao = null;
+    let tipoMovimentacao = null; // 'entrada' ou 'saida'
+
+    // Inicialização ao carregar a página
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarProdutos();
+      atualizarStatusAPI();
+    });
+
+    // Notificações Toast
+    function showToast(mensagem, tipo = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${tipo}`;
+
+      let icon = '✔';
+      if (tipo === 'error') icon = '✖';
+      if (tipo === 'warning') icon = '⚠';
+
+      toast.innerHTML = `<span style="font-weight: bold;">${icon}</span> <span>${mensagem}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Carregar todos os produtos da API
+    async function carregarProdutos() {
+      try {
+        const res = await fetch(`${API_URL}/selecionar`);
+        if (!res.ok) throw new Error('Falha ao carregar produtos');
+        produtos = await res.json();
+        renderizarTabela();
+        atualizarContadores();
+      } catch (err) {
+        showToast('Erro ao carregar lista de produtos do servidor.', 'error');
+        console.error(err);
+      }
+    }
+
+    // Atualizar Status e Contadores
+    async function atualizarStatusAPI() {
+      try {
+        const res = await fetch(`${API_URL}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('stat-total-produtos').textContent = data.totalProdutosCadastrados || 0;
+          document.getElementById('stat-total-itens').textContent = data.totalItensEmEstoque || 0;
+          document.getElementById('stat-estoque-critico').textContent = data.produtosComEstoqueBaixo || 0;
+        }
+      } catch (e) {
+        // Fallback para contadores locais se status falhar
+        atualizarContadores();
+      }
+    }
+
+    function atualizarContadores() {
+      const totalTipos = produtos.length;
+      const totalItens = produtos.reduce((acc, p) => acc + (p.quantidade || 0), 0);
+      const criticos = produtos.filter(p => (p.quantidade || 0) <= 5).length;
+
+      document.getElementById('stat-total-produtos').textContent = totalTipos;
+      document.getElementById('stat-total-itens').textContent = totalItens;
+      document.getElementById('stat-estoque-critico').textContent = criticos;
+      document.getElementById('lbl-total-grid').textContent = `${totalTipos} produto(s)`;
+    }
+
+    // Filtragem de produtos (Busca e Abas)
+    function definirFiltro(tipo) {
+      filtroAtual = tipo;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`filter-${tipo}`).classList.add('active');
+      renderizarTabela();
+    }
+
+    function filtrarProdutos() {
+      renderizarTabela();
+    }
+
+    // Renderiza a tabela no DOM
+    function renderizarTabela() {
+      const termo = document.getElementById('campo-busca').value.toLowerCase().trim();
+      const tbody = document.getElementById('tabela-produtos-corpo');
+      const emptyState = document.getElementById('empty-state');
+      tbody.innerHTML = '';
+
+      let listaFiltrada = produtos.filter(p => {
+        // Filtro por categoria/aba
+        if (filtroAtual === 'disponivel' && (p.quantidade || 0) <= 0) return false;
+        if (filtroAtual === 'baixo' && (p.quantidade || 0) > 5) return false;
+
+        // Filtro de pesquisa de texto
+        if (!termo) return true;
+        const modelo = (p.codigoModelo || '').toLowerCase();
+        const nome = (p.nome || '').toLowerCase();
+        const cat = (p.categoria || '').toLowerCase();
+        return modelo.includes(termo) || nome.includes(termo) || cat.includes(termo);
+      });
+
+      if (listaFiltrada.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      listaFiltrada.forEach(p => {
+        const tr = document.createElement('tr');
+
+        // Formatação de Preço
+        const precoFormatado = Number(p.preco || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        
+        // Status de Quantidade
+        const qtd = p.quantidade || 0;
+        let statusClass = 'status-ok';
+        let statusTexto = `${qtd} un.`;
+        if (qtd === 0) {
+          statusClass = 'status-empty';
+          statusTexto = 'Esgotado';
+        } else if (qtd <= 5) {
+          statusClass = 'status-low';
+        }
+
+        // Código de Modelo com fallback se for nulo
+        const codModelo = p.codigoModelo || 'SEM-COD';
+
+        tr.innerHTML = `
+          <td>
+            <span class="badge badge-modelo" title="Código de Modelo Único">${codModelo}</span>
+          </td>
+          <td>
+            <div style="font-weight: 600; color: #fff;">${escapeHtml(p.nome)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">ID: #${p.id}</div>
+          </td>
+          <td>
+            <span class="badge badge-category">${escapeHtml(p.categoria || 'Geral')}</span>
+          </td>
+          <td style="font-family: var(--font-mono); font-weight: 600; color: #34d399;">
+            ${precoFormatado}
+          </td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="status-pill ${statusClass}"></span>
+              <span style="font-weight: 600;">${statusTexto}</span>
+            </div>
+          </td>
+          <td style="text-align: right;">
+            <div class="row-actions" style="justify-content: flex-end;">
+              <button class="btn btn-secondary btn-sm" onclick="abrirModalMovimentacao(${p.id}, 'entrada')" title="Entrada de estoque">
+                + Entrada
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="abrirModalMovimentacao(${p.id}, 'saida')" title="Saída de estoque">
+                - Saída
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="carregarParaEdicao(${p.id})" title="Editar produto">
+                ✏ Editar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="removerProduto(${p.id})" title="Excluir produto">
+                🗑
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Cadastrar ou Alterar Produto
+    async function salvarProduto(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('prod-id').value;
+      const codigoModelo = document.getElementById('prod-codigo-modelo').value.trim().toUpperCase();
+      const nome = document.getElementById('prod-nome').value.trim();
+      const categoria = document.getElementById('prod-categoria').value.trim() || 'Geral';
+      const quantidade = parseInt(document.getElementById('prod-quantidade').value, 10) || 0;
+      const preco = parseFloat(document.getElementById('prod-preco').value) || 0.0;
+
+      if (!codigoModelo) {
+        showToast('O Código de Modelo é obrigatório!', 'error');
+        return;
+      }
+
+      if (!nome) {
+        showToast('O Nome do produto é obrigatório!', 'error');
+        return;
+      }
+
+      const payload = {
+        codigoModelo,
+        nome,
+        categoria,
+        quantidade,
+        preco
+      };
+
+      try {
+        let url = `${API_URL}/cadastrar`;
+        let method = 'POST';
+
+        if (id) {
+          url = `${API_URL}/alterar/${id}`;
+          method = 'PUT';
+          payload.id = parseInt(id, 10);
+        }
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.status === 409) {
+          showToast(data.mensagem || 'Já existe um produto com este Código de Modelo!', 'warning');
+          return;
+        }
+
+        if (!res.ok) {
+          showToast(data.mensagem || 'Erro ao salvar o produto.', 'error');
+          return;
+        }
+
+        showToast(id ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!', 'success');
+        resetarFormulario();
+        await carregarProdutos();
+        await atualizarStatusAPI();
+      } catch (err) {
+        showToast('Erro de comunicação com o servidor.', 'error');
+        console.error(err);
+      }
+    }
+
+    // Carregar dados no formulário para edição
+    function carregarParaEdicao(id) {
+      const p = produtos.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-codigo-modelo').value = p.codigoModelo || '';
+      document.getElementById('prod-nome').value = p.nome || '';
+      document.getElementById('prod-categoria').value = p.categoria || '';
+      document.getElementById('prod-quantidade').value = p.quantidade || 0;
+      document.getElementById('prod-preco').value = Number(p.preco || 0).toFixed(2);
+
+      document.getElementById('form-title').innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        Editar Produto #${p.id}
+      `;
+      document.getElementById('badge-modo').style.display = 'inline-block';
+      document.getElementById('btn-salvar').textContent = 'Atualizar Alterações';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Limpar formulário de volta para criação
+    function resetarFormulario() {
+      document.getElementById('produto-form').reset();
+      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-quantidade').value = '0';
+      document.getElementById('prod-preco').value = '0.00';
+      document.getElementById('badge-modo').style.display = 'none';
+      document.getElementById('btn-salvar').innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Salvar Produto
+      `;
+      document.getElementById('form-title').innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Adicionar Novo Produto
+      `;
+    }
+
+    // Excluir Produto
+    async function removerProduto(id) {
+      const p = produtos.find(item => item.id === id);
+      const nome = p ? p.nome : `ID #${id}`;
+      if (!confirm(`Deseja realmente remover o produto "${nome}"?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/remover/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Erro ao remover produto');
+        showToast('Produto excluído com sucesso!', 'success');
+        await carregarProdutos();
+        await atualizarStatusAPI();
+      } catch (err) {
+        showToast('Erro ao excluir produto no servidor.', 'error');
+        console.error(err);
+      }
+    }
+
+    // Modal de Entrada e Saída de Estoque
+    function abrirModalMovimentacao(id, tipo) {
+      produtoMovimentacao = produtos.find(item => item.id === id);
+      if (!produtoMovimentacao) return;
+
+      tipoMovimentacao = tipo;
+      document.getElementById('modal-produto-nome').textContent = produtoMovimentacao.nome;
+      document.getElementById('modal-produto-modelo').textContent = `Modelo: ${produtoMovimentacao.codigoModelo || 'N/A'}`;
+      document.getElementById('modal-qtd').value = '1';
+
+      if (tipo === 'entrada') {
+        document.getElementById('modal-titulo').textContent = 'Entrada de Mercadoria no Estoque';
+        document.getElementById('modal-btn-confirmar').textContent = 'Confirmar Entrada (+)';
+        document.getElementById('modal-btn-confirmar').className = 'btn btn-primary btn-full';
+      } else {
+        document.getElementById('modal-titulo').textContent = 'Saída / Baixa de Mercadoria do Estoque';
+        document.getElementById('modal-btn-confirmar').textContent = 'Confirmar Saída (-)';
+        document.getElementById('modal-btn-confirmar').className = 'btn btn-danger btn-full';
+      }
+
+      document.getElementById('modal-movimentacao').classList.add('active');
+    }
+
+    function fecharModal() {
+      document.getElementById('modal-movimentacao').classList.remove('active');
+      produtoMovimentacao = null;
+      tipoMovimentacao = null;
+    }
+
+    async function executarMovimentacao() {
+      if (!produtoMovimentacao || !tipoMovimentacao) return;
+
+      const qtd = parseInt(document.getElementById('modal-qtd').value, 10);
+      if (!qtd || qtd <= 0) {
+        showToast('Informe uma quantidade válida maior que zero.', 'warning');
+        return;
+      }
+
+      const endpoint = `${API_URL}/produtos/${produtoMovimentacao.id}/${tipoMovimentacao}`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantidade: qtd })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.mensagem || 'Erro ao processar movimentação.', 'error');
+          return;
+        }
+
+        showToast(data.mensagem || 'Movimentação realizada com sucesso!', 'success');
+        fecharModal();
+        await carregarProdutos();
+        await atualizarStatusAPI();
+      } catch (err) {
+        showToast('Erro de comunicação com o servidor.', 'error');
+        console.error(err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
